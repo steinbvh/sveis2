@@ -33,6 +33,56 @@ class InputSection(QWidget):
         self.V_input.setPrefix("V: ")
         self.V_input.setSuffix(" kN")
         layout.addWidget(self.V_input)
+
+        # Konfigurerer inputfeltet for moment(M)
+        self.M_input = QDoubleSpinBox()
+        self.M_input.setRange(0, 10000)
+        self.M_input.setPrefix("M: ")
+        self.M_input.setSuffix(" kNm")
+        layout.addWidget(self.M_input)
+
+        # Konfigurerer inputfeltet for lengde (L)
+        self.L_input = QDoubleSpinBox()
+        self.L_input.setRange(0, 10000)
+        self.L_input.setPrefix("L: ")
+        self.L_input.setSuffix(" mm")
+        self.L_input.setValue(100)
+        self.L_input.setDecimals(0)
+        layout.addWidget(self.L_input)
+
+        # Konfigurerer inputfeltet for a-mål (a)
+        self.a_input = QDoubleSpinBox()
+        self.a_input.setRange(0, 10000)
+        self.a_input.setPrefix("a: ")
+        self.a_input.setSuffix(" mm")
+        self.a_input.setValue(4)
+        self.a_input.setDecimals(0)
+        layout.addWidget(self.a_input)
+
+        # Konfigurerer inputfeltet for bruddfasthet(fu)
+        self.fu_input = QDoubleSpinBox()
+        self.fu_input.setRange(0, 550)
+        self.fu_input.setPrefix("fu: ")
+        self.fu_input.setSuffix(" N/mm²")
+        self.fu_input.setValue(510)
+        self.fu_input.setDecimals(0)        
+        layout.addWidget(self.fu_input)
+
+        # Konfigurerer inputfeltet for korrelasjonsfaktor (Bw)
+        self.Bw_input = QDoubleSpinBox()
+        self.Bw_input.setRange(0, 1)
+        self.Bw_input.setPrefix("Bw: ")
+        self.Bw_input.setValue(0.9)
+        self.Bw_input.setDecimals(1)        
+        layout.addWidget(self.Bw_input)
+
+        # Konfigurerer inputfeltet for sikkerthetfaktor (Y2)
+        self.Ym2_input = QDoubleSpinBox()
+        self.Ym2_input.setRange(0, 1.25)
+        self.Ym2_input.setPrefix("Y2: ")
+        self.Ym2_input.setValue(1.25)
+        layout.addWidget(self.Ym2_input)        
+        
         
         # Lager knappen som brukeren trykker på for å starte beregningen
         self.calc_button = QPushButton("Calculate")
@@ -48,7 +98,15 @@ class InputSection(QWidget):
         # Oppretter datapakke-objektet med de gjeldende verdiene fra spinboksene
         data_pakke = InputPakke(
             N = self.N_input.value(), 
-            V = self.V_input.value()
+            V = self.V_input.value(),
+            M = self.M_input.value(),
+            L = self.L_input.value(),
+            a = self.a_input.value(),
+            fu = self.fu_input.value(),
+            Bw = self.Bw_input.value(),
+            Ym2 = self.Ym2_input.value()
+
+            
         )
         # Emitterer (sender) signalet ut av denne modulen.
         # Hvem som helst på utsiden (f.eks. MainWindow) kan nå lytte på dette.
@@ -69,16 +127,57 @@ class OutputSection(QWidget):
         layout = QVBoxLayout(self)
         
         # Tekstfeltet som skal vise resultatet til brukeren
-        self.N_V_output = QLabel("N + V =")
-        layout.addWidget(self.N_V_output)
+        self.sigma_perp_label = QLabel("sigma_perp =")
+        layout.addWidget(self.sigma_perp_label)
 
+        self.tau_perp_label = QLabel("tau_perp =")
+        layout.addWidget(self.tau_perp_label)
+
+        self.tau_para_label = QLabel("tau_para =")
+        layout.addWidget(self.tau_para_label)       
+
+        self.total_stress_label = QLabel("total_stress =")
+        layout.addWidget(self.total_stress_label)         
+
+        self.capacity_label = QLabel("tcapacity =")
+        layout.addWidget(self.capacity_label)
+
+        self.utilization_lcd = QLCDNumber()
+        self.utilization_lcd.setSegmentStyle(QLCDNumber.SegmentStyle.Filled)
+        layout.addWidget(self.utilization_lcd)       
+        
     def vis_resultat(self, output: OutputPakke):
         """
         Offentlig metode som andre klasser kan kalle på for å dytte 
         nye resultater inn på skjermen.
         """
         # Formaterer strengen og oppdaterer teksten i QLabel-feltet
-        self.N_V_output.setText(f"N + V = {output.N_V} kN")
+        self.sigma_perp_label.setText(f"sigma_perp = {output.sigma_perp: .0f} N/mm²")
+        self.tau_perp_label.setText(f"tau_perp = {output.tau_perp: .0f} N/mm²")
+        self.tau_para_label.setText(f"tau_para = {output.tau_para: .0f} N/mm²")
+        self.total_stress_label.setText(f"total_stress = {output.total_stress: .0f} N/mm²")
+        self.capacity_label.setText(f"capacity = {output.capacity: .0f} N/mm²")
+        self.utilization_lcd.display(output.utilization)
+        if output.utilization > 100:
+            self.utilization_lcd.setStyleSheet("""
+                QLCDNumber { 
+                    background-color: #ff8080; 
+                    color: white; 
+                    border: 2px solid #333;
+                    border-radius: 4px;
+                }
+            """)   
+        else:
+            self.utilization_lcd.setStyleSheet("""
+            QLCDNumber { 
+                background-color: #99ff99; 
+                color: white; 
+                border: 2px solid #333;
+                border-radius: 4px;
+            }
+        """)         
+
+        
 
 
 # =====================================================================
