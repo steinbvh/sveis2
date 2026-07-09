@@ -19,6 +19,8 @@ def calculations(data: InputPakke):
     total_stress = math.sqrt(sigma_perp**2 + 3*(tau_perp**2 + tau_para**2))
 
     capacity = fu / (Bw * Ym2)
+
+    utilization = round((total_stress / capacity) * 100)
     
     return OutputPakke(
         sigma_perp,
